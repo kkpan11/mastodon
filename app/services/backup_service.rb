@@ -33,7 +33,7 @@ class BackupService < BaseService
 
       file.write(statuses.map do |status|
         item = serialize_payload(ActivityPub::ActivityPresenter.from_status(status), ActivityPub::ActivitySerializer)
-        item.delete('@context')
+        item.delete(:@context)
 
         unless item[:type] == 'Announce' || item[:object][:attachment].blank?
           item[:object][:attachment].each do |attachment|
@@ -72,13 +72,13 @@ class BackupService < BaseService
   end
 
   def dump_media_attachments!(zipfile)
-    MediaAttachment.attached.where(account: account).reorder(nil).find_in_batches do |media_attachments|
+    MediaAttachment.attached.where(account: account).find_in_batches do |media_attachments|
       media_attachments.each do |m|
         path = m.file&.path
         next unless path
 
-        path = path.gsub(/\A.*\/system\//, '')
-        path = path.gsub(/\A\/+/, '')
+        path = path.gsub(%r{\A.*/system/}, '')
+        path = path.gsub(%r{\A/+}, '')
         download_to_zip(zipfile, m.file, path)
       end
 
@@ -101,8 +101,8 @@ class BackupService < BaseService
     actor[:likes]       = 'likes.json'
     actor[:bookmarks]   = 'bookmarks.json'
 
-    download_to_zip(tar, account.avatar, "avatar#{File.extname(account.avatar.path)}") if account.avatar.exists?
-    download_to_zip(tar, account.header, "header#{File.extname(account.header.path)}") if account.header.exists?
+    download_to_zip(zipfile, account.avatar, "avatar#{File.extname(account.avatar.path)}") if account.avatar.exists?
+    download_to_zip(zipfile, account.header, "header#{File.extname(account.header.path)}") if account.header.exists?
 
     json = Oj.dump(actor)
 

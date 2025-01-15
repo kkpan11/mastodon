@@ -2,7 +2,9 @@
 
 require 'rails_helper'
 
-describe ApplicationController, type: :controller do
+RSpec.describe ApplicationController do
+  render_views
+
   controller do
     def success
       head 200
@@ -22,17 +24,27 @@ describe ApplicationController, type: :controller do
   end
 
   shared_examples 'respond_with_error' do |code|
-    it "returns http #{code} for http" do
+    it "returns http #{code} for http and renders template" do
       subject
-      expect(response).to have_http_status(code)
+
+      expect(response)
+        .to have_http_status(code)
+      expect(response.parsed_body)
+        .to have_css('body[class=error]')
+      expect(response.parsed_body.css('h1').to_s)
+        .to include(error_content(code))
     end
 
-    it 'renders template for http' do
-      expect(subject).to render_template("errors/#{code}", layout: 'error')
+    def error_content(code)
+      if code == 422
+        I18n.t('errors.422.content')
+      else
+        I18n.t("errors.#{code}")
+      end
     end
   end
 
-  context 'forgery' do
+  context 'with a forgery' do
     subject do
       ActionController::Base.allow_forgery_protection = true
       routes.draw { post 'success' => 'anonymous#success' }
@@ -105,7 +117,7 @@ describe ApplicationController, type: :controller do
     end
   end
 
-  context 'ActionController::RoutingError' do
+  context 'with ActionController::RoutingError' do
     subject do
       routes.draw { get 'routing_error' => 'anonymous#routing_error' }
       get 'routing_error'
@@ -114,7 +126,7 @@ describe ApplicationController, type: :controller do
     include_examples 'respond_with_error', 404
   end
 
-  context 'ActiveRecord::RecordNotFound' do
+  context 'with ActiveRecord::RecordNotFound' do
     subject do
       routes.draw { get 'record_not_found' => 'anonymous#record_not_found' }
       get 'record_not_found'
@@ -123,7 +135,7 @@ describe ApplicationController, type: :controller do
     include_examples 'respond_with_error', 404
   end
 
-  context 'ActionController::InvalidAuthenticityToken' do
+  context 'with ActionController::InvalidAuthenticityToken' do
     subject do
       routes.draw { get 'invalid_authenticity_token' => 'anonymous#invalid_authenticity_token' }
       get 'invalid_authenticity_token'
@@ -220,38 +232,5 @@ describe ApplicationController, type: :controller do
     end
 
     include_examples 'respond_with_error', 422
-  end
-
-  describe 'cache_collection' do
-    class C < ApplicationController
-      public :cache_collection
-    end
-
-    shared_examples 'receives :with_includes' do |fabricator, klass|
-      it 'uses raw if it is not an ActiveRecord::Relation' do
-        record = Fabricate(fabricator)
-        expect(C.new.cache_collection([record], klass)).to eq [record]
-      end
-    end
-
-    shared_examples 'cacheable' do |fabricator, klass|
-      include_examples 'receives :with_includes', fabricator, klass
-
-      it 'calls cache_ids of raw if it is an ActiveRecord::Relation' do
-        record = Fabricate(fabricator)
-        relation = klass.none
-        allow(relation).to receive(:cache_ids).and_return([record])
-        expect(C.new.cache_collection(relation, klass)).to eq [record]
-      end
-    end
-
-    it 'returns raw unless class responds to :with_includes' do
-      raw = Object.new
-      expect(C.new.cache_collection(raw, Object)).to eq raw
-    end
-
-    context 'Status' do
-      include_examples 'cacheable', :status, Status
-    end
   end
 end

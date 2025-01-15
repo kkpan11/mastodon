@@ -1,20 +1,27 @@
-import React from 'react';
+import type { IconProp } from './icon';
 import { Icon } from './icon';
 
-const formatNumber = (num: number): number | string => num > 40 ? '40+' : num;
+const formatNumber = (num: number): number | string => (num > 40 ? '40+' : num);
 
-type Props = {
+interface Props {
   id: string;
+  icon: IconProp;
   count: number;
   issueBadge: boolean;
   className: string;
 }
-const IconWithBadge: React.FC<Props> = ({ id, count, issueBadge, className }) => (
+export const IconWithBadge: React.FC<Props> = ({
+  id,
+  icon,
+  count,
+  issueBadge,
+  className,
+}) => (
   <i className='icon-with-badge'>
-    <Icon id={id} fixedWidth className={className} />
-    {count > 0 && <i className='icon-with-badge__badge'>{formatNumber(count)}</i>}
+    <Icon id={id} icon={icon} className={className} />
+    {count > 0 && (
+      <i className='icon-with-badge__badge'>{formatNumber(count)}</i>
+    )}
     {issueBadge && <i className='icon-with-badge__issue-badge' />}
   </i>
 );
-
-export default IconWithBadge;

@@ -1,13 +1,15 @@
-import React from 'react';
-import ImmutablePropTypes from 'react-immutable-proptypes';
 import PropTypes from 'prop-types';
-import Audio from 'mastodon/features/audio';
-import { connect } from 'react-redux';
+
+import ImmutablePropTypes from 'react-immutable-proptypes';
 import ImmutablePureComponent from 'react-immutable-pure-component';
+import { connect } from 'react-redux';
+
+import { getAverageFromBlurhash } from 'mastodon/blurhash';
+import Audio from 'mastodon/features/audio';
 import Footer from 'mastodon/features/picture_in_picture/components/footer';
 
 const mapStateToProps = (state, { statusId }) => ({
-  language: state.getIn(['statuses', statusId, 'language']),
+  status: state.getIn(['statuses', statusId]),
   accountStaticAvatar: state.getIn(['accounts', state.getIn(['statuses', statusId, 'account']), 'avatar_static']),
 });
 
@@ -16,7 +18,7 @@ class AudioModal extends ImmutablePureComponent {
   static propTypes = {
     media: ImmutablePropTypes.map.isRequired,
     statusId: PropTypes.string.isRequired,
-    language: PropTypes.string,
+    status: ImmutablePropTypes.map.isRequired,
     accountStaticAvatar: PropTypes.string.isRequired,
     options: PropTypes.shape({
       autoPlay: PropTypes.bool,
@@ -25,16 +27,30 @@ class AudioModal extends ImmutablePureComponent {
     onChangeBackgroundColor: PropTypes.func.isRequired,
   };
 
+  componentDidMount () {
+    const { media, onChangeBackgroundColor } = this.props;
+
+    const backgroundColor = getAverageFromBlurhash(media.get('blurhash'));
+
+    onChangeBackgroundColor(backgroundColor || { r: 255, g: 255, b: 255 });
+  }
+
+  componentWillUnmount () {
+    this.props.onChangeBackgroundColor(null);
+  }
+
   render () {
-    const { media, language, accountStaticAvatar, statusId, onClose } = this.props;
+    const { media, status, accountStaticAvatar, onClose } = this.props;
     const options = this.props.options || {};
+    const language = status.getIn(['translation', 'language']) || status.get('language');
+    const description = media.getIn(['translation', 'description']) || media.get('description');
 
     return (
       <div className='modal-root__modal audio-modal'>
         <div className='audio-modal__container'>
           <Audio
             src={media.get('url')}
-            alt={media.get('description')}
+            alt={description}
             lang={language}
             duration={media.getIn(['meta', 'original', 'duration'], 0)}
             height={150}
@@ -47,7 +63,7 @@ class AudioModal extends ImmutablePureComponent {
         </div>
 
         <div className='media-modal__overlay'>
-          {statusId && <Footer statusId={statusId} withOpenButton onClose={onClose} />}
+          {status && <Footer statusId={status.get('id')} withOpenButton onClose={onClose} />}
         </div>
       </div>
     );

@@ -2,7 +2,7 @@
 
 require 'rails_helper'
 
-describe Admin::Users::RolesController do
+RSpec.describe Admin::Users::RolesController do
   render_views
 
   let(:current_role) { UserRole.create(name: 'Foo', permissions: UserRole::FLAGS[:manage_roles], position: 10) }
@@ -40,7 +40,7 @@ describe Admin::Users::RolesController do
       put :update, params: { user_id: user.id, user: { role_id: selected_role.id } }
     end
 
-    context do
+    context 'with manage roles permissions' do
       let(:permissions) { UserRole::FLAGS[:manage_roles] }
       let(:position) { 1 }
 

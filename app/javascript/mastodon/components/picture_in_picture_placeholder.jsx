@@ -1,14 +1,19 @@
-import React from 'react';
 import PropTypes from 'prop-types';
-import Icon from 'mastodon/components/icon';
-import { removePictureInPicture } from 'mastodon/actions/picture_in_picture';
-import { connect } from 'react-redux';
+import { PureComponent } from 'react';
+
 import { FormattedMessage } from 'react-intl';
 
-class PictureInPicturePlaceholder extends React.PureComponent {
+import { connect } from 'react-redux';
+
+import CancelPresentationIcon from '@/material-icons/400-24px/cancel_presentation.svg?react';
+import { removePictureInPicture } from 'mastodon/actions/picture_in_picture';
+import { Icon }  from 'mastodon/components/icon';
+
+class PictureInPicturePlaceholder extends PureComponent {
 
   static propTypes = {
     dispatch: PropTypes.func.isRequired,
+    aspectRatio: PropTypes.string,
   };
 
   handleClick = () => {
@@ -17,9 +22,11 @@ class PictureInPicturePlaceholder extends React.PureComponent {
   };
 
   render () {
+    const { aspectRatio } = this.props;
+
     return (
-      <div className='picture-in-picture-placeholder' role='button' tabIndex={0} onClick={this.handleClick}>
-        <Icon id='window-restore' />
+      <div className='picture-in-picture-placeholder' style={{ aspectRatio }} role='button' tabIndex={0} onClick={this.handleClick}>
+        <Icon id='window-restore' icon={CancelPresentationIcon} />
         <FormattedMessage id='picture_in_picture.restore' defaultMessage='Put it back' />
       </div>
     );

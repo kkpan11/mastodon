@@ -1,16 +1,20 @@
-import * as React from 'react';
-import classNames from 'classnames';
-import { autoPlayGif } from '../initial_state';
-import { useHovering } from '../../hooks/useHovering';
-import type { Account } from '../../types/resources';
+import { useState, useCallback } from 'react';
 
-type Props = {
-  account: Account;
+import classNames from 'classnames';
+
+import { useHovering } from 'mastodon/../hooks/useHovering';
+import { autoPlayGif } from 'mastodon/initial_state';
+import type { Account } from 'mastodon/models/account';
+
+interface Props {
+  account: Account | undefined; // FIXME: remove `undefined` once we know for sure its always there
   size: number;
   style?: React.CSSProperties;
   inline?: boolean;
   animate?: boolean;
-};
+  counter?: number | string;
+  counterBorderColor?: string;
+}
 
 export const Avatar: React.FC<Props> = ({
   account,
@@ -18,8 +22,12 @@ export const Avatar: React.FC<Props> = ({
   size = 20,
   inline = false,
   style: styleFromParent,
+  counter,
+  counterBorderColor,
 }) => {
   const { hovering, handleMouseEnter, handleMouseLeave } = useHovering(animate);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(false);
 
   const style = {
     ...styleFromParent,
@@ -32,18 +40,36 @@ export const Avatar: React.FC<Props> = ({
       ? account?.get('avatar')
       : account?.get('avatar_static');
 
+  const handleLoad = useCallback(() => {
+    setLoading(false);
+  }, [setLoading]);
+
+  const handleError = useCallback(() => {
+    setError(true);
+  }, [setError]);
+
   return (
     <div
       className={classNames('account__avatar', {
-        'account__avatar-inline': inline,
+        'account__avatar--inline': inline,
+        'account__avatar--loading': loading,
       })}
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
       style={style}
     >
-      {src && <img src={src} alt={account?.get('acct')} />}
+      {src && !error && (
+        <img src={src} alt='' onLoad={handleLoad} onError={handleError} />
+      )}
+
+      {counter && (
+        <div
+          className='account__avatar__counter'
+          style={{ borderColor: counterBorderColor }}
+        >
+          {counter}
+        </div>
+      )}
     </div>
   );
 };
-
-export default Avatar;
