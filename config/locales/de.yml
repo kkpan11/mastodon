@@ -486,9 +486,12 @@ de:
           created_at: Erstellt am
           delete: Entfernen
           ip: IP-Adresse
+          request_body: Body anfragen
+          title: Callback testen
       providers:
         active: Aktiv
         base_url: Basis-URL
+        callback: Callback
         delete: Entfernen
         edit: Anbieter bearbeiten
         finish_registration: Registrierung abschließen
@@ -1585,7 +1588,7 @@ de:
       too_many: Mehr als vier Dateien können nicht angehängt werden
   migrations:
     acct: umgezogen nach
-    cancel: Weiterleitung beenden
+    cancel: Nicht mehr weiterleiten
     cancel_explanation: Das Abbrechen der Weiterleitung wird dein aktuelles Konto erneut aktivieren, aber keine Follower zurückholen, die auf dieses Konto verschoben wurden.
     cancelled_msg: Die Weiterleitung wurde erfolgreich beendet.
     errors:
@@ -2065,7 +2068,6 @@ de:
       post_action: Verfassen
       post_step: Begrüße die Welt mit Text, Fotos, Videos oder Umfragen.
       post_title: Erstelle deinen ersten Beitrag
-      share_action: Teilen
       share_step: Lass deine Freund*innen wissen, wie sie dich auf Mastodon finden können.
       share_title: Teile dein Mastodon-Profil
       sign_in_action: Anmelden
